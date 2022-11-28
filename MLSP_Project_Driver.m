@@ -100,7 +100,8 @@ for i = 1:length(oct_ims)-1
     % seperate mark locations into feature vectors with labels
     feat_vecs = cell(1,7);
     marks = mark_labels(i);
-    fn = fieldnames(marks);    
+    fn = fieldnames(marks);
+    marked_inds = [];
     for f = 1:length(fn)
         inds_2d = round(marks.(fn{f})); % x,y
         rows = inds_2d(:,2);
@@ -115,6 +116,7 @@ for i = 1:length(oct_ims)-1
         feats(:,6) = cols; % col location
         feat_vecs{f} = feats;
         train_labels = [train_labels; f*ones(length(inds_1d),1)];
+        marked_inds = [marked_inds; inds_1d];
     end
 
     % Assign feature vector to all the other non-desired cells. This will
@@ -191,10 +193,7 @@ test_feats = zeros(num_pix,6);
 idx = 1;
 for p = 1:num_pix
     [row,col] = ind2sub(sz,p);
-    if (row < start_row)
-        continue;
-    end
-    if (test_im(p) == 0 )
+    if (row < start_row || test_im_1d(p) == 0 )
         continue;
     end
     test_feats(idx,1) = test_im_1d(p); % intensity
@@ -217,7 +216,7 @@ test_feats = test_feats(1:num_pts,:);
 % Run Knn Classification
 knn = 1; % found using only the closest neighbore is best so far
 knn_test_labels = zeros(num_pts,1);
-feat_inds = zeros(num_pts,2);
+label_inds = zeros(num_pts,2);
 
 for p = 1:num_pts
     dists = vecnorm( test_feats(p,:) - train_data,2,2);
@@ -225,13 +224,13 @@ for p = 1:num_pts
     [dists_min, ind] = mink(dists,knn);
     k_dists = [dists_min, train_labels(ind) ];
     knn_test_labels(p) = k_dists(:,2);
-    feat_inds(p,:) = test_feats(p,5:6);
+    label_inds(p,:) = test_feats(p,5:6);
 end
 
 % Resolve labels and their locations 
 knn_inds = find(knn_test_labels);
 knn_labs = knn_test_labels(knn_inds);
-knn_locs = feat_inds(knn_inds,:);
+knn_locs = label_inds(knn_inds,:);
 knn_marks = cell(1,6); 
 for i = 1:length(knn_labs)
     label = knn_labs(i);
@@ -243,7 +242,7 @@ end
 fn = fieldnames(mark_labels(1));
 my_marks = cell2struct(knn_marks,fn,2);
 test_im_cell{1} = test_im; % input must be cell array
-im_marked = mark_images(test_im,my_marks);
+im_marked = mark_images(test_im_cell,my_marks);
 
 figure;
 subplot(211);

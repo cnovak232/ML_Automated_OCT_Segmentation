@@ -43,35 +43,6 @@ for i = 1:length(oct_ims)
     oct_ims{i} = imbilatfilt(oct_ims{i});
 end
 
-%% Extract Segment Features (Experimentation Section)
-
-% Edge/Gradient Detection
-
-% Edge option
-edge_list = cell(1,size(oct_ims,2));
-
-for i = 1:size(oct_ims,2)
-    sub_im = oct_ims{1,i};
-    edge_imagei = edge(sub_im,'canny',[0.05,0.3],1.7);
-    edge_list{1,i} = edge_imagei;
-    % figure 
-    % imshow(sub_imagei)
-end
-
-% Gradient Option
-mag_list = cell(1,size(oct_ims,2));
-Gdir = cell(1,size(oct_ims,2));
-
-for i = 1:size(oct_ims,2)
-    sub_im = oct_ims{1,i};
-    [Gmag,Gdir] = imgradient(sub_im,"sobel");
-    mag_list{1,i} = Gmag;
-    Gdir{1,i} = Gdir;
-    figure
-    imshowpair(Gmag,Gdir,'montage')
-end
-% Graph Search
-
 %% Seperate Features for Segmentation: Working
 % For each pixel (or set of pixels) in a image create a feature vector:
 % [pixel intesity, grad mag, grad dir,local_avg, xloc, yloc]
@@ -254,8 +225,37 @@ title('Marked by algorithm')
 
 %% SVM Training - Needs testing
 
-Mdl = fitcecoc(train_data,train_labels);
+% Mdl = fitcecoc(train_data,train_labels);
 %% Random Forest
+
+%% Extract Segment Features (Experimentation Section)
+
+% % Edge/Gradient Detection
+% 
+% % Edge option
+% edge_list = cell(1,size(oct_ims,2));
+% 
+% for i = 1:size(oct_ims,2)
+%     sub_im = oct_ims{1,i};
+%     edge_imagei = edge(sub_im,'canny',[0.05,0.3],1.7);
+%     edge_list{1,i} = edge_imagei;
+%     % figure 
+%     % imshow(sub_imagei)
+% end
+% 
+% % Gradient Option
+% mag_list = cell(1,size(oct_ims,2));
+% Gdir = cell(1,size(oct_ims,2));
+% 
+% for i = 1:size(oct_ims,2)
+%     sub_im = oct_ims{1,i};
+%     [Gmag,Gdir] = imgradient(sub_im,"sobel");
+%     mag_list{1,i} = Gmag;
+%     Gdir{1,i} = Gdir;
+%     figure
+%     imshowpair(Gmag,Gdir,'montage')
+% end
+% Graph Search
 
 
 

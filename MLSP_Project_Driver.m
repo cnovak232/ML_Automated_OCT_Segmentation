@@ -9,7 +9,8 @@ opt=detectImportOptions(filename);
 shts=sheetnames(filename);
 
 for i=1:numel(shts)
-  oct_marks{i}=readtable(filename,opt,'Sheet',shts(i));
+  oct_marks{i} = readtable(filename,opt,'Sheet',shts(i));
+  % Suppress warnings???
 end
 
 %% Select image to process
@@ -47,30 +48,30 @@ end
 
 % Edge/Gradient Detection
 
-% Edge option
-edge_list = cell(1,size(oct_ims,2));
-
-for i = 1:size(oct_ims,2)
-    sub_im = oct_ims{1,i};
-    edge_imagei = edge(sub_im,'canny',[0.05,0.3],1.7);
-    edge_list{1,i} = edge_imagei;
-    % figure 
-    % imshow(sub_imagei)
-end
-
-% Gradient Option
-mag_list = cell(1,size(oct_ims,2));
-Gdir = cell(1,size(oct_ims,2));
-
-for i = 1:size(oct_ims,2)
-    sub_im = oct_ims{1,i};
-    [Gmag,Gdir] = imgradient(sub_im,"sobel");
-    mag_list{1,i} = Gmag;
-    Gdir{1,i} = Gdir;
-    figure
-    imshowpair(Gmag,Gdir,'montage')
-end
-% Graph Search
+% % Edge option
+% edge_list = cell(1,size(oct_ims,2));
+% 
+% for i = 1:size(oct_ims,2)
+%     sub_im = oct_ims{1,i};
+%     edge_imagei = edge(sub_im,'canny',[0.05,0.3],1.7);
+%     edge_list{1,i} = edge_imagei;
+%     % figure 
+%     % imshow(sub_imagei)
+% end
+% 
+% % Gradient Option
+% mag_list = cell(1,size(oct_ims,2));
+% Gdir_list = cell(1,size(oct_ims,2));
+% 
+% for i = 1:size(oct_ims,2)
+%     sub_im = oct_ims{1,i};
+%     [Gmag,Gdir] = imgradient(sub_im,"sobel");
+%     mag_list{1,i} = Gmag;
+%     Gdir_list{1,i} = Gdir;
+%     %figure
+%     %imshowpair(Gmag,Gdir,'montage')
+% end
+% % Graph Search
 
 %% Seperate Features for Segmentation: Working
 % For each pixel (or set of pixels) in a image create a feature vector:
@@ -81,11 +82,19 @@ end
 % Create large matrix of these feature values for all the images
 % with markings - use a variable number of data points with 0 label
 
+tic
+
 num_feats = 6;
 train_data = [];
 train_labels = [];
 ims_for_class_0 = 1;
-for i = 1:length(oct_ims)-1 
+
+% Resizing
+for i = 1:num_images
+    oct_ims{i} = imresize(oct_ims{i},1/3);
+end
+
+for i = 1:4 
     sub_im = double(oct_ims{i});
 
     % compute features and reshape
@@ -100,10 +109,17 @@ for i = 1:length(oct_ims)-1
     % seperate mark locations into feature vectors with labels
     feat_vecs = cell(1,7);
     marks = mark_labels(i);
+    % Resizing marks
+    marks.bruch_op = marks.bruch_op / 3;
+    marks.ant_lam_lim = marks.ant_lam_lim / 3;
+    marks.bruch_mem_left = marks.bruch_mem_left / 3;
+    marks.bruch_mem_right = marks.bruch_mem_right / 3;
+    marks.chor_scl_left = marks.chor_scl_left / 3;
+    marks.chor_scl_right = marks.chor_scl_right / 3;
     fn = fieldnames(marks);
     marked_inds = [];
     for f = 1:length(fn)
-        inds_2d = round(marks.(fn{f})); % x,y
+        inds_2d = ceil(marks.(fn{f})); % x,y
         rows = inds_2d(:,2);
         cols = inds_2d(:,1);
         inds_1d = sub2ind(sz,rows,cols);
@@ -151,7 +167,7 @@ for i = 1:length(oct_ims)-1
         train_labels = [train_labels; zeros(idx,1)];
     end
 
-    % group all pixel feature vectors from each class/lable
+    % group all pixel feature vectors from each class/label
     all_classes = [];
     for c = 1:length(feat_vecs)
         all_classes = [all_classes; feat_vecs{c}];
@@ -214,7 +230,7 @@ test_feats = test_feats(1:num_pts,:);
 
 
 % Run Knn Classification
-knn = 1; % found using only the closest neighbore is best so far
+knn = 1; % found using only the closest neighbor is best so far
 knn_test_labels = zeros(num_pts,1);
 label_inds = zeros(num_pts,2);
 
@@ -241,7 +257,16 @@ end
 % Convert cell vec to struct for the mark_images() function
 fn = fieldnames(mark_labels(1));
 my_marks = cell2struct(knn_marks,fn,2);
+% Resizing marks
+my_marks.bruch_op = my_marks.bruch_op * 3;
+my_marks.ant_lam_lim = my_marks.ant_lam_lim * 3;
+my_marks.bruch_mem_left = my_marks.bruch_mem_left * 3;
+my_marks.bruch_mem_right = my_marks.bruch_mem_right * 3;
+my_marks.chor_scl_left = my_marks.chor_scl_left * 3;
+my_marks.chor_scl_right = my_marks.chor_scl_right * 3;
 test_im_cell{1} = test_im; % input must be cell array
+% Resize images
+test_im_cell{1} = imresize(test_im_cell{1},3);
 im_marked = mark_images(test_im_cell,my_marks);
 
 figure;
@@ -251,10 +276,11 @@ title('Marked from spreadsheet')
 subplot(212);
 imshow(im_marked{1});
 title('Marked by algorithm')
+toc
 
 %% SVM Training - Needs testing
 
-Mdl = fitcecoc(train_data,train_labels);
+%Mdl = fitcecoc(train_data,train_labels);
 %% Random Forest
 
 

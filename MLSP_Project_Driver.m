@@ -7,9 +7,10 @@
 %machine for the folder1 variable.
 %Use the path to the "Drops Eyes (Preprocessed & Marked)" folder for the 
 %folder2 variable. 
-folder1 = "C:\Users\Kelly Clingo\OneDrive - Johns Hopkins\MLSP\Eyes_Processed_2D_Final\";
-folder2 = "C:\Users\Kelly Clingo\OneDrive - Johns Hopkins\MLSP\Drops Eyes (Preprocessed & Marked)\";
-[images,oct_marks] = load_data(folder1,folder2);
+% folder1 = "C:\Users\Kelly Clingo\OneDrive - Johns Hopkins\MLSP\Eyes_Processed_2D_Final\";
+% folder2 = "C:\Users\Kelly Clingo\OneDrive - Johns Hopkins\MLSP\Drops Eyes (Preprocessed & Marked)\";
+% [images,oct_marks] = load_data(folder1,folder2);
+
 %% Read in spreadsheet info and init paths
 addpath('./HandleImages/');
 addpath('./ProcessData/');

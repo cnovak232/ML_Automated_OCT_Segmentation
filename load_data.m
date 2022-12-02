@@ -1,5 +1,5 @@
 %% Read in Data
-function [images,oct_marks] = load_data(folder)
+function [images,oct_marks] = load_data(folder1,folder2)
 
 %Vanessa's Images
 oct_marks = {};
@@ -42,7 +42,7 @@ bestbefore = string(['1';
 
 for i=1:numel(imgs)
     for j = 1:24
-        filename = './'+imgs(i)+'/Before'+bestbefore(i)+'/1HOCT_'+imgs(i)+'L0_24s_3DCE.tif';
+        filename = folder2+imgs(i)+'/Before'+bestbefore(i)+'/1HOCT_'+imgs(i)+'L0_24s_3DCE.tif';
         images{i,j}=imread(filename,j);
     end
 end
@@ -71,7 +71,7 @@ LCnum_file = unique(LCnum_file,'stable');
 
 [rows,~] = size(images);
 
-listing = dir(folder);
+listing = dir(folder1);
 for i = 1:length(listing)
     imgfilenames(i) = string(listing(i).name);
 end
@@ -153,10 +153,7 @@ end
 %% 
 for i = 1:length(imgfilenames)
     for j = 1:24
-        imgfilename = folder+imgfilenames(i)+"\1HOCT_"+LCnum_imgfile(i)+"L0_Before"+best_bef(i)+"_3DCE.tif";
+        imgfilename = folder1+imgfilenames(i)+"\1HOCT_"+LCnum_imgfile(i)+"L0_Before"+best_bef(i)+"_3DCE.tif";
         images{rows+i,j}=imread(imgfilename,j);
     end
 end 
-
-
-    

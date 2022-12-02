@@ -1,14 +1,14 @@
 %% Graph Based
 
 %read in image
-img = imread('./1HOCT_LC504L0_24S.tif');
+img = imread('./Image_Decks_wMarks/1HOCT_LC504L0_24S.tif',1);
 
 % pad image with vertical column on both sides
 szImg = size(img);
 imgNew = zeros([szImg(1) szImg(2)+2]);
 imgNew(:,2:1+szImg(2)) = img;
 
-
+szImgNew = size(imgNew);
 % get  vertical gradient image
 gradImg = nan(szImgNew);
 for i = 1:szImgNew(2)

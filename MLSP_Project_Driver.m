@@ -2,16 +2,14 @@
 % Automatic Segmentatioin of OCT Images
 % Members:
 
-%% Read in spreadsheet info
-oct_marks = {};
-filename = './DVC_Marking_Points_10-11-2022.xlsx';
-opt=detectImportOptions(filename);
-shts=sheetnames(filename);
-
-for i=1:numel(shts)
-  oct_marks{i} = readtable(filename,opt,'Sheet',shts(i));
-  % Suppress warnings???
-end
+%% Read in spreadsheet info and images
+%Use the path to the "Eyes_Processed_2D_Final" folder location on your
+%machine for the folder1 variable.
+%Use the path to the "Drops Eyes (Preprocessed & Marked)" folder for the 
+%folder2 variable. 
+folder1 = "C:\Users\Kelly Clingo\OneDrive - Johns Hopkins\MLSP\Eyes_Processed_2D_Final\";
+folder2 = "C:\Users\Kelly Clingo\OneDrive - Johns Hopkins\MLSP\Drops Eyes (Preprocessed & Marked)\";
+[images,oct_marks] = load_data(folder1,folder2);
 
 %% Select image to process
 lc_num = 'LC504'; % use this to specify which image to process

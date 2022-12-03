@@ -21,7 +21,11 @@ for seg = 0:num_segs-1
     lab = labels(seg+1);
     for slice = 1:num_slices
         ind = find(slice == markings.(T));
-        labeled_marks(slice).(lab) = [markings.(r)(ind),markings.(z)(ind)];
+        rs = markings.(r)(ind);
+        zs = markings.(z)(ind);
+        rs(rs <=0 ) = 1;
+        zs(zs <= 0 ) = 1;
+        labeled_marks(slice).(lab) = [rs,zs];
     end
 end
 

@@ -27,16 +27,16 @@ end
 
 %% Run this section to load 1 image deck and it's labels
 % load in single image
-lc_num = 'LC504'; % use this to specify which image to process
-scale = 3; % resize parameter for processing smaller images
-
-[oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
-     loadSingleImDeck(lc_num,oct_marks,shts,scale);
+% lc_num = 'LC504'; % use this to specify which image to process
+% scale = 3; % resize parameter for processing smaller images
+% 
+% [oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
+%      loadSingleImDeck(lc_num,oct_marks,shts,scale);
 
 %% Run this section to load all image decks and labels
-% scale = 3;
-% [oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
-%     loadAllImDecks(oct_marks,shts);
+scale = 3;
+[oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
+    loadAllImDecks(oct_marks,shts,scale);
 
 %% Seperate Features for Segmentation: Working
 % For each pixel (or set of pixels) in a image create a feature vector:
@@ -47,27 +47,51 @@ scale = 3; % resize parameter for processing smaller images
 % Create large matrix of these feature values for all the images
 % with markings - use a variable number of data points with 0 label
 
+% oct = oct_ims;
+% % Resizing
+% if scale > 1 
+%     oct = oct_ims_rs;
+% end
+% num_zero_ims = 2;
+% 
+% %[train_data,train_labels] = computeTrainingData(oct,mark_labels,scale,num_zero_ims);
+% [train_data,train_labels] = computeTrainingDataMask(oct,mark_labels,scale,num_zero_ims);
+% 
+% % Segement Test Image Pixels into feature vecs 
+% test_im_num = 24;
+% test_im = oct{test_im_num};
+% 
+% %[test_feats, label_inds] = computeTestFeats(test_im);
+% [test_feats, label_inds] = computeTestFeatsMask(test_im);
+
+%% Run alg on all images
 oct = oct_ims;
 % Resizing
 if scale > 1 
     oct = oct_ims_rs;
 end
-num_zero_ims = 2;
+num_zero_ims = 1;
+train_data = [];
+train_labels = [];
 
-%[train_data,train_labels] = computeTrainingData(oct,mark_labels,scale,num_zero_ims);
-[train_data,train_labels] = computeTrainingDataMask(oct,mark_labels,scale,num_zero_ims);
+for lc = 1:length(mark_labels)
+    oct_lc = oct(:,lc);
+    [train_data_lc,train_labels_lc] = computeTrainingDataMask(oct_lc,mark_labels{lc},scale,num_zero_ims);
+    
+    train_data = [train_data; train_data_lc];
+    train_labels = [train_labels; train_labels_lc];
+end
 
-% Segement Test Image Pixels into feature vecs 
-test_im_num = 24;
-test_im = oct{test_im_num};
+test_im_loc = 1;
+test_im_options = oct(24,:);
+test_im = test_im_options{test_im_loc};
 
-%[test_feats, label_inds] = computeTestFeats(test_im);
 [test_feats, label_inds] = computeTestFeatsMask(test_im);
 
 %% Knn Classification 
 % Run Knn Classification
 num_pts = size(test_feats,1);
-knn = 1; % how many neighbors
+knn = 9; % how many neighbors
 knn_test_labels = zeros(num_pts,1);
 
 for p = 1:num_pts
@@ -82,9 +106,9 @@ end
 knn_inds = find(knn_test_labels);
 knn_labs = knn_test_labels(knn_inds);
 knn_locs = label_inds(knn_inds,:);
-alg_marks = sort_alg_markings(knn_labs,knn_locs,mark_labels,scale);
+alg_marks = sort_alg_markings(knn_labs,knn_locs,mark_labels{1},scale);
 
-test_im_cell{1} = oct_ims{test_im_num}; % input must be cell array
+test_im_cell = oct_ims(24,test_im_loc); % input must be cell array
 im_marked = mark_images(test_im_cell,alg_marks);
 figure;
 imshow(marked_ims{24});
@@ -95,26 +119,26 @@ title('Marked by algorithm')
 
 
 %% SVM Training - Pretty bad
-
-t = templateSVM('KernelFunction','gaussian');
-Mdl = fitcecoc(train_data,train_labels,'Learners',t);
-
-svm_labels = predict(Mdl,test_feats);
-
-% Resolve labels and their locations 
-svm_inds = find(svm_labels);
-svm_labs = svm_labels(svm_inds);
-svm_locs = label_inds(svm_inds,:);
-alg_marks = sort_alg_markings(svm_labs,svm_locs,mark_labels,3);
-
-test_im_cell{1} = oct_ims{test_im_num}; % input must be cell array
-im_marked = mark_images(test_im_cell,alg_marks);
-figure;
-imshow(marked_ims{24});
-title('Marked from spreadsheet')
-figure;
-imshow(im_marked{1});
-title('Marked by algorithm')
+% 
+% t = templateSVM('KernelFunction','gaussian');
+% Mdl = fitcecoc(train_data,train_labels,'Learners',t);
+% 
+% svm_labels = predict(Mdl,test_feats);
+% 
+% % Resolve labels and their locations 
+% svm_inds = find(svm_labels);
+% svm_labs = svm_labels(svm_inds);
+% svm_locs = label_inds(svm_inds,:);
+% alg_marks = sort_alg_markings(svm_labs,svm_locs,mark_labels,3);
+% 
+% test_im_cell{1} = oct_ims{test_im_num}; % input must be cell array
+% im_marked = mark_images(test_im_cell,alg_marks);
+% figure;
+% imshow(marked_ims{24});
+% title('Marked from spreadsheet')
+% figure;
+% imshow(im_marked{1});
+% title('Marked by algorithm')
 %% Random Forest - Not bad
 Mdl = TreeBagger(100,train_data,train_labels);
 
@@ -126,9 +150,9 @@ rf_labels = str2num(cell2mat(rf_labels));
 rf_inds = find(rf_labels);
 rf_labs = rf_labels(rf_inds);
 rf_locs = label_inds(rf_inds,:);
-alg_marks = sort_alg_markings(rf_labs,rf_locs,mark_labels,scale);
+alg_marks = sort_alg_markings(rf_labs,rf_locs,mark_labels{1},scale);
 
-test_im_cell{1} = oct_ims{test_im_num}; % input must be cell array
+test_im_cell = oct_ims(24,test_im_loc); % input must be cell array
 im_marked = mark_images(test_im_cell,alg_marks);
 figure;
 imshow(marked_ims{24});

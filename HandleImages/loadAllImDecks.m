@@ -9,10 +9,10 @@ num_images = 24;
 labels = ["bruch_op","bruch_mem_left","bruch_mem_right","ant_lam_lim",...
     "chor_scl_left","chor_scl_right"];
 
-oct_ims = cell(num_people,num_images);
-oct_ims_rs = cell(num_people,num_images);
+oct_ims = cell(num_images,num_people);
+oct_ims_rs = cell(num_images,num_people);
 mark_labels = cell(1,num_people);
-marked_ims = cell(num_people,num_images);
+marked_ims = cell(num_images,num_people);
 listname = listname(4:end);
 for p = 1:length(listname)
     im_name = listname(p).name;
@@ -31,7 +31,7 @@ for p = 1:length(listname)
     mark_labels{p} = sort_markings(im_marks,labels);
     
     oct = oct_ims(:,p)';
-    marked_ims(p,:) = mark_images(oct,mark_labels{p});
+    marked_ims(:,p) = mark_images(oct,mark_labels{p});
 end
  
 end

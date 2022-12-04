@@ -108,6 +108,10 @@ knn_labs = knn_test_labels(knn_inds);
 knn_locs = label_inds(knn_inds,:);
 alg_marks = sort_alg_markings(knn_labs,knn_locs,mark_labels{1},scale);
 
+alg_line = linefind(alg_marks,size(oct_ims{test_im_num}));
+
+im_fitted = mark_images(test_im_cell,alg_line);
+
 test_im_cell = oct_ims(24,test_im_loc); % input must be cell array
 im_marked = mark_images(test_im_cell,alg_marks);
 figure;
@@ -116,6 +120,9 @@ title('Marked from spreadsheet')
 figure;
 imshow(im_marked{1});
 title('Marked by KNN algorithm')
+figure;
+imshow(im_fitted{1});
+title('Random Forest Linearized')
 
 %% Section 4b:Random Forest - Not bad
 Mdl = TreeBagger(100,train_data,train_labels);
@@ -130,14 +137,20 @@ rf_labs = rf_labels(rf_inds);
 rf_locs = label_inds(rf_inds,:);
 alg_marks = sort_alg_markings(rf_labs,rf_locs,mark_labels{1},scale);
 
+alg_line = linefind(alg_marks,size(oct_ims{test_im_num}));
+
 test_im_cell = oct_ims(24,test_im_loc); % input must be cell array
 im_marked = mark_images(test_im_cell,alg_marks);
-figure;
-imshow(marked_ims{24});
-title('Marked from spreadsheet')
+im_fitted = mark_images(test_im_cell,alg_line);
+% figure;
+% imshow(marked_ims{24});
+% title('Marked from spreadsheet')
 figure;
 imshow(im_marked{1});
-title('Marked by algorithm')
+title('Random Forest')
+figure;
+imshow(im_fitted{1});
+title('Random Forest Linearized')
 %% SVM Training - Pretty bad
 % 
 % t = templateSVM('KernelFunction','gaussian');

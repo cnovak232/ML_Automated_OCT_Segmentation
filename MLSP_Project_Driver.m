@@ -24,21 +24,21 @@ for i=1:numel(shts)
   % Suppress warnings???
 end
 
-
 %% Run this section to load 1 image deck and it's labels
-% load in single image
-% lc_num = 'LC504'; % use this to specify which image to process
-% scale = 3; % resize parameter for processing smaller images
-% 
-% [oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
-%      loadSingleImDeck(lc_num,oct_marks,shts,scale);
+%load in single image
+lc_num = 'LC504'; % use this to specify which image to process
+scale = 3; % resize parameter for processing smaller images
+
+[oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
+     loadSingleImDeck(lc_num,oct_marks,shts,scale);
 
 %% Run this section to load all image decks and labels
 scale = 3;
 [oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
     loadAllImDecks(oct_marks,shts,scale);
 
-%% Seperate Features for Segmentation: Working
+%% Seperate Features for Segmentation: Single Person (LC)
+% Uses 23 LC images for training, images 24 for testing
 % For each pixel (or set of pixels) in a image create a feature vector:
 % [pixel intesity, grad mag, grad dir,local_avg, xloc, yloc]
 % Assign it a label based on marking lables 1-6: corresponding to the 6
@@ -54,23 +54,23 @@ scale = 3;
 % end
 % num_zero_ims = 2;
 % 
-% %[train_data,train_labels] = computeTrainingData(oct,mark_labels,scale,num_zero_ims);
 % [train_data,train_labels] = computeTrainingDataMask(oct,mark_labels,scale,num_zero_ims);
 % 
 % % Segement Test Image Pixels into feature vecs 
 % test_im_num = 24;
 % test_im = oct{test_im_num};
-% 
-% %[test_feats, label_inds] = computeTestFeats(test_im);
+
 % [test_feats, label_inds] = computeTestFeatsMask(test_im);
 
-%% Run alg on all images
+%% Run algorithm on all images
+% Uses images 1:23 for each lc person (total of 8) for training
+% Can select any of the 8 people's 24th images for testing
 oct = oct_ims;
 % Resizing
 if scale > 1 
     oct = oct_ims_rs;
 end
-num_zero_ims = 1;
+num_zero_ims = 1; % how many images to use for zero labels per person
 train_data = [];
 train_labels = [];
 
@@ -82,7 +82,7 @@ for lc = 1:length(mark_labels)
     train_labels = [train_labels; train_labels_lc];
 end
 
-test_im_loc = 1;
+test_im_loc = 1; % which lc person to test on (value 1 - 8)
 test_im_options = oct(24,:);
 test_im = test_im_options{test_im_loc};
 
@@ -166,9 +166,11 @@ title('Marked by algorithm')
 % % Edge/Gradient Detection
 % 
 % sub_im = oct_ims{24};
-% edge_im = edge(sub_im,'canny',.04);
+% % edge_im = edge(sub_im,'canny',.04);
 % figure; 
+% subplot(131)
 % imshow(sub_im);
+% title('Normal Image')
 % 
 % figure;
 % imshow(edge_im);
@@ -180,15 +182,16 @@ title('Marked by algorithm')
 % figure;
 % imagesc(gx);
 
-
+% 
 % mask = imbinarize(sub_im);
 % % A = bwboundaries(sub_im);
-% figure;
+% subplot(132);
 % imshow(mask);
-% figure;
+% title('Binary Mask based on Image');
 % im_masked = sub_im .* uint8(mask);
-% figure;
+% subplot(133)
 % imshow(im_masked);
+% title('Binary Mask applied to Image');
 % [gm_mask_pre,gd_mask_pre] = imgradient(im_masked,'sobel');
 % gm_masked = gm .* double(mask);
 % figure; imagesc(gm_masked);

@@ -1,4 +1,4 @@
-function [feat_vecs,train_labels,marked_inds] = handleMarkedData(feats,marks,m_inds,sz,scale)
+function [feat_vecs,train_labels,marked_inds] = handleMarkedDataMasked(feats,marks,m_inds,sz,scale)
 
 % Resizing marks
 marks.bruch_op = marks.bruch_op / scale;
@@ -16,9 +16,6 @@ for f = 1:length(fn)
     inds_2d = ceil(marks.(fn{f})); % x,y
     rows = inds_2d(:,2);
     cols = inds_2d(:,1);
-    if (any(~rows) || any(~cols))
-        a = 1;
-    end
     inds_1d = sub2ind(sz,rows,cols);
     [~,~,new_inds] = intersect(inds_1d,m_inds);
     feat_vecs{f} = feats(new_inds,:);

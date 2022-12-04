@@ -4,6 +4,7 @@ function [train_data, train_labels] = computeTrainingDataMask(oct,mark_labels,sc
 train_data = [];
 train_labels = [];
 ims_for_class_0 = [1:num_zero_data];
+center_norm = true;
 
 
 for i = 1:length(oct)-1
@@ -12,7 +13,7 @@ for i = 1:length(oct)-1
     
     sub_im_1d= reshape(sub_im,[numel(sub_im),1]);
 
-    [feats, m_inds] = extractFeaturesMasked(sub_im,1);
+    [feats, m_inds] = extractFeaturesMasked(sub_im,center_norm,2);
 
     % seperate mark locations into feature vectors with labels
     marks = mark_labels(i);

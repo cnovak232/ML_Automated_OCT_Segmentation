@@ -11,7 +11,7 @@
 % folder2 = "C:\Users\Kelly Clingo\OneDrive - Johns Hopkins\MLSP\Drops Eyes (Preprocessed & Marked)\";
 % [images,oct_marks] = load_data(folder1,folder2);
 
-%% Read in spreadsheet info and init paths
+%% Section 1: Read in spreadsheet info and init paths
 addpath('./HandleImages/');
 addpath('./ProcessData/');
 oct_marks = {};
@@ -24,7 +24,7 @@ for i=1:numel(shts)
   % Suppress warnings???
 end
 
-%% Run this section to load 1 image deck and it's labels
+%% Section 2a: Run this section to load 1 image deck and it's labels
 %load in single image
 lc_num = 'LC504'; % use this to specify which image to process
 scale = 3; % resize parameter for processing smaller images
@@ -32,12 +32,12 @@ scale = 3; % resize parameter for processing smaller images
 [oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
      loadSingleImDeck(lc_num,oct_marks,shts,scale);
 
-%% Run this section to load all image decks and labels
+%% Section 2b: Run this section to load all image decks and labels
 scale = 3;
 [oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
     loadAllImDecks(oct_marks,shts,scale);
 
-%% Seperate Features for Segmentation: Single Person (LC)
+%% Section 3a: Seperate Features for Segmentation - Single Person (LC)
 % Uses 23 LC images for training, images 24 for testing
 % For each pixel (or set of pixels) in a image create a feature vector:
 % [pixel intesity, grad mag, grad dir,local_avg, xloc, yloc]
@@ -62,7 +62,7 @@ scale = 3;
 
 % [test_feats, label_inds] = computeTestFeatsMask(test_im);
 
-%% Run algorithm on all images
+%% Section 3b: Seperate Features for SegmentationRun - All LC persons images
 % Uses images 1:23 for each lc person (total of 8) for training
 % Can select any of the 8 people's 24th images for testing
 oct = oct_ims;
@@ -88,7 +88,7 @@ test_im = test_im_options{test_im_loc};
 
 [test_feats, label_inds] = computeTestFeatsMask(test_im);
 
-%% Knn Classification 
+%% Section 4a: KNN Classification 
 % Run Knn Classification
 num_pts = size(test_feats,1);
 knn = 9; % how many neighbors
@@ -115,9 +115,29 @@ imshow(marked_ims{24});
 title('Marked from spreadsheet')
 figure;
 imshow(im_marked{1});
+title('Marked by KNN algorithm')
+
+%% Section 4b:Random Forest - Not bad
+Mdl = TreeBagger(100,train_data,train_labels);
+
+rf_labels = predict(Mdl,test_feats);
+
+rf_labels = str2num(cell2mat(rf_labels));
+
+% Resolve labels and their locations 
+rf_inds = find(rf_labels);
+rf_labs = rf_labels(rf_inds);
+rf_locs = label_inds(rf_inds,:);
+alg_marks = sort_alg_markings(rf_labs,rf_locs,mark_labels{1},scale);
+
+test_im_cell = oct_ims(24,test_im_loc); % input must be cell array
+im_marked = mark_images(test_im_cell,alg_marks);
+figure;
+imshow(marked_ims{24});
+title('Marked from spreadsheet')
+figure;
+imshow(im_marked{1});
 title('Marked by algorithm')
-
-
 %% SVM Training - Pretty bad
 % 
 % t = templateSVM('KernelFunction','gaussian');
@@ -139,27 +159,7 @@ title('Marked by algorithm')
 % figure;
 % imshow(im_marked{1});
 % title('Marked by algorithm')
-%% Random Forest - Not bad
-Mdl = TreeBagger(100,train_data,train_labels);
 
-rf_labels = predict(Mdl,test_feats);
-
-rf_labels = str2num(cell2mat(rf_labels));
-
-% Resolve labels and their locations 
-rf_inds = find(rf_labels);
-rf_labs = rf_labels(rf_inds);
-rf_locs = label_inds(rf_inds,:);
-alg_marks = sort_alg_markings(rf_labs,rf_locs,mark_labels{1},scale);
-
-test_im_cell = oct_ims(24,test_im_loc); % input must be cell array
-im_marked = mark_images(test_im_cell,alg_marks);
-figure;
-imshow(marked_ims{24});
-title('Marked from spreadsheet')
-figure;
-imshow(im_marked{1});
-title('Marked by algorithm')
 
 %% Section for testing
 

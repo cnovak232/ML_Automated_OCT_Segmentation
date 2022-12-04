@@ -1,9 +1,5 @@
-function [feats,m_inds] = extractFeaturesMasked(sub_im,center_norm,option)
-    if option == 1
-        mask = imbinarize(sub_im);
-    else
-        mask = gradientEdgeDetection(sub_im,0.3);
-    end
+function [feats,m_inds] = extractFeaturesMasked(sub_im,center_norm)
+    mask = imbinarize(sub_im);
     mask = double(mask);
     mask = reshape(mask,[numel(mask) 1]);
     m_inds = find(mask);

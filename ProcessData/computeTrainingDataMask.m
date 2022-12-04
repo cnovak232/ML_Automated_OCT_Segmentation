@@ -13,7 +13,7 @@ for i = 1:length(oct)-1
     
     sub_im_1d= reshape(sub_im,[numel(sub_im),1]);
 
-    [feats, m_inds] = extractFeaturesMasked(sub_im,center_norm,2);
+    [feats, m_inds] = extractFeaturesMasked(sub_im,center_norm);
 
     % seperate mark locations into feature vectors with labels
     marks = mark_labels(i);

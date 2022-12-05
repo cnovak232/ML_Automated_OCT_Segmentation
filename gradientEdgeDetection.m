@@ -1,4 +1,4 @@
-function [index] = gradientEdgeDetection(img,threshold)
+function [index,mask] = gradientEdgeDetection(img,threshold, plotting)
 %GRADIENTEDGEDETECTION: takes in an image, uses its vertical graident to
 %detect strong edges and saves the index of those edge pixels
 
@@ -28,12 +28,13 @@ for i = 1: size(gradImg,1)
     end 
 end 
 
-
+if plotting
 figure()
 subplot(2,2,1)
 imshow(uint8(img));
 fontSize = 15;
 title('Orginal Image');
+end
 
 % Label each blob with 8-connectivity, so we can make measurements of it
 [labeledImage, numberOfBlobs] = bwlabel(gradImgNew, 8);
@@ -44,9 +45,11 @@ title('Orginal Image');
 coloredLabelsImage = label2rgb (labeledImage, 'hsv', 'k', 'shuffle');
 % Display the pseudo-colored image.
 %subplot(1, 2, 2);
+if plotting
 subplot(2,2,2)
 imshow(coloredLabelsImage);
 title('Labeled Image', 'FontSize', fontSize);
+end
 
 
 
@@ -95,7 +98,9 @@ for i = 1: size(labeledImage,1)
         end 
     end 
 end 
+mask = New > 0;
 
+if plotting
 subplot(2,2,3)
 coloredLabelsImage = label2rgb (New, 'hsv', 'k', 'shuffle');
 imshow(coloredLabelsImage)
@@ -108,6 +113,7 @@ hold on
 %sparse indeces
 plot(index(1:20:end,2),index(1:20:end,1),'b*')
 hold off
+end
 
 
 

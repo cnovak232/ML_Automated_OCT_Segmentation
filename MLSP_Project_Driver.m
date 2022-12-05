@@ -26,11 +26,11 @@ end
 
 %% Section 2a: Run this section to load 1 image deck and it's labels
 %load in single image
-lc_num = 'LC504'; % use this to specify which image to process
-scale = 3; % resize parameter for processing smaller images
-
-[oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
-     loadSingleImDeck(lc_num,oct_marks,shts,scale);
+% lc_num = 'LC504'; % use this to specify which image to process
+% scale = 3; % resize parameter for processing smaller images
+% 
+% [oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
+%      loadSingleImDeck(lc_num,oct_marks,shts,scale);
 
 %% Section 2b: Run this section to load all image decks and labels
 scale = 3;
@@ -70,7 +70,9 @@ oct = oct_ims;
 if scale > 1 
     oct = oct_ims_rs;
 end
-num_zero_ims = 1; % how many images to use for zero labels per person
+
+num_zero_ims = 1; % how many images to take 0 label pixels from per LC num
+                  % i've found 1 works best
 train_data = [];
 train_labels = [];
 
@@ -82,7 +84,8 @@ for lc = 1:length(mark_labels)
     train_labels = [train_labels; train_labels_lc];
 end
 
-test_im_loc = 1; % which lc person to test on (value 1 - 8)
+test_im_loc = 1; % which lc person to test on (value 1 - 8) 
+                 % view order of input folder for corresponding lc 
 test_im_options = oct(24,:);
 test_im = test_im_options{test_im_loc};
 
@@ -107,22 +110,24 @@ knn_inds = find(knn_test_labels);
 knn_labs = knn_test_labels(knn_inds);
 knn_locs = label_inds(knn_inds,:);
 alg_marks = sort_alg_markings(knn_labs,knn_locs,mark_labels{1},scale);
-
-alg_line = linefind(alg_marks,size(oct_ims{test_im_num}));
-
-im_fitted = mark_images(test_im_cell,alg_line);
-
 test_im_cell = oct_ims(24,test_im_loc); % input must be cell array
 im_marked = mark_images(test_im_cell,alg_marks);
+
+alg_line = linefind(alg_marks,size(oct_ims{1}),15);
+im_fitted = mark_images(test_im_cell,alg_line);
+
 figure;
-imshow(marked_ims{24});
-title('Marked from spreadsheet')
+imshow(marked_ims{24,test_im_loc});
+title('Marked from spreadsheet');
+
 figure;
 imshow(im_marked{1});
-title('Marked by KNN algorithm')
+title('Marked by KNN algorithm');
+pause(1); % there's a timing issues with the titles 
+
 figure;
 imshow(im_fitted{1});
-title('Random Forest Linearized')
+title('KNN Linearized');
 
 %% Section 4b:Random Forest - Not bad
 Mdl = TreeBagger(100,train_data,train_labels);
@@ -137,20 +142,24 @@ rf_labs = rf_labels(rf_inds);
 rf_locs = label_inds(rf_inds,:);
 alg_marks = sort_alg_markings(rf_labs,rf_locs,mark_labels{1},scale);
 
-alg_line = linefind(alg_marks,size(oct_ims{test_im_num}));
-
 test_im_cell = oct_ims(24,test_im_loc); % input must be cell array
+alg_line = linefind(alg_marks,size(oct_ims{1}),15);
 im_marked = mark_images(test_im_cell,alg_marks);
 im_fitted = mark_images(test_im_cell,alg_line);
-% figure;
-% imshow(marked_ims{24});
-% title('Marked from spreadsheet')
+
+figure;
+imshow(marked_ims{24,test_im_loc});
+title('Marked from spreadsheet');
+
 figure;
 imshow(im_marked{1});
-title('Random Forest')
+title('Random Forest');
+pause(1); % there's a timing issues with the titles 
+
 figure;
 imshow(im_fitted{1});
-title('Random Forest Linearized')
+title('Random Forest Linearized');
+
 %% SVM Training - Pretty bad
 % 
 % t = templateSVM('KernelFunction','gaussian');
@@ -176,21 +185,29 @@ title('Random Forest Linearized')
 
 %% Section for testing
 
-% % Edge/Gradient Detection
-% 
-% sub_im = oct_ims{24};
-% % edge_im = edge(sub_im,'canny',.04);
+% Edge/Gradient Detection
+
+% sub_im = oct_ims{1};
+% edge_im = edge(sub_im,'canny',.04);
 % figure; 
-% subplot(131)
 % imshow(sub_im);
 % title('Normal Image')
-% 
 % figure;
 % imshow(edge_im);
+% title('Edge Image')
+% mask = imbinarize(sub_im);
+% emask = mask & edge_im;
 % 
-% [gx,gy] = imgradientxy(sub_im,'sobel');
 % figure;
-% imagesc(gx);
+% imshow(emask);
+% 
+% [gmag,gdir] = imgradient(sub_im,'sobel');
+% 
+% figure;
+% imagesc(gmag);
+% gmag_mask = gmag .* double(emask);
+% figure;
+% imagesc(gmag_mask);
 % [gx,gy] = imgradientxy(gx,'central');
 % figure;
 % imagesc(gx);

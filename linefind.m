@@ -1,4 +1,4 @@
-function [out] = linefind(alg_marks,sz)
+function [out] = linefind(alg_marks,sz,n_poly)
 %UNTITLED4 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -82,7 +82,7 @@ for i = 1:5
     end
    
     % Fitting polynomials
-    n_poly = 16; % degree of polynomial
+    %n_poly = 16; % degree of polynomial
     n_poly_list = n_poly:-1:0;
     y = zeros(1,sz(2));
     % Fit function

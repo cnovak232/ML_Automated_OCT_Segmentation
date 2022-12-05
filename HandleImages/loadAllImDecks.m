@@ -1,6 +1,6 @@
 function [oct_ims,oct_ims_rs,mark_labels,marked_ims] = loadAllImDecks(oct_marks,shts,scale)
 %Import all images
-imdir = './Image_Decks_wMarks/';
+imdir = './Best_Images_wMarks/';
 listname = dir(imdir);
 num_people = 8;
 num_images = 24;
@@ -13,7 +13,7 @@ oct_ims = cell(num_images,num_people);
 oct_ims_rs = cell(num_images,num_people);
 mark_labels = cell(1,num_people);
 marked_ims = cell(num_images,num_people);
-listname = listname(4:end);
+listname = listname(3:end);
 for p = 1:length(listname)
     im_name = listname(p).name;
     im_file = [imdir im_name];

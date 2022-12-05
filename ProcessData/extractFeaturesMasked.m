@@ -1,10 +1,15 @@
-function [feats,m_inds] = extractFeaturesMasked(sub_im,center_norm)
+function [feats,m_inds] = extractFeaturesMasked(sub_im,center_norm,option)
     mask = imbinarize(sub_im);
-    mask = double(mask);
     mask = reshape(mask,[numel(mask) 1]);
+    if option == 1
+        %[~,gmask] = gradientEdgeDetection(sub_im,.3,0);
+        edge_mask = edge(sub_im,'canny',.03);
+        edge_mask = reshape(edge_mask, [numel(edge_mask) 1]);
+        mask = edge_mask & mask;
+    end
     m_inds = find(mask);
     % compute all features and reshape
-    [gm,gd] = imgradient(sub_im,'sobel');
+    [gx,gy] = imgradientxy(sub_im,'sobel');
     %W = graydiffweight(sub_im,refGrayVal)
     %gw = gradientweight(sub_im);
     [~,SI] = graycomatrix(sub_im);
@@ -15,12 +20,12 @@ function [feats,m_inds] = extractFeaturesMasked(sub_im,center_norm)
     sub_im = double(sub_im);
     sub_im_1d= reshape(sub_im,[numel(sub_im),1]);
     intensity = sub_im_1d;
-    gm = reshape(gm,[numel(gm) 1]);
-    gd = reshape(gd,[numel(gd) 1]);
+    gx = reshape(gx,[numel(gx) 1]);
+    gy = reshape(gy,[numel(gy) 1]);
     %gw = reshape(gw,[numel(gw) 1]);
     SI = reshape(SI,[numel(SI) 1]);
     avg = reshape(avg,[numel(avg) 1]);
-    feats = [intensity(m_inds),gm(m_inds),gd(m_inds),avg(m_inds),rows(m_inds),cols(m_inds)];
+    feats = [intensity(m_inds),gx(m_inds),gy(m_inds),avg(m_inds),rows(m_inds),cols(m_inds)];
 
     if center_norm
         mn = mean(feats,1);

@@ -1,6 +1,6 @@
 function [oct_ims,oct_ims_rs,mark_labels,marked_ims] = loadSingleImDeck(lc_num,oct_marks,shts,scale)
 
-im_name = ['./Image_Decks_wMarks/1HOCT_',lc_num,'L0_24S.tif'];
+im_name = ['./Best_Images_wMarks/1HOCT_',lc_num,'L0_24S.tif'];
 
 num_images = 24;
 oct_ims = {};

@@ -25,12 +25,12 @@ for i=1:numel(shts)
 end
 
 %% Section 2a: Run this section to load 1 image deck and it's labels
-%load in single image
-% lc_num = 'LC504'; % use this to specify which image to process
-% scale = 3; % resize parameter for processing smaller images
-% 
-% [oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
-%      loadSingleImDeck(lc_num,oct_marks,shts,scale);
+load in single image
+lc_num = 'LC504'; % use this to specify which image to process
+scale = 3; % resize parameter for processing smaller images
+
+[oct_ims,oct_ims_rs,mark_labels,marked_ims] = ...
+     loadSingleImDeck(lc_num,oct_marks,shts,scale);
 
 %% Section 2b: Run this section to load all image decks and labels
 scale = 3;
@@ -84,8 +84,18 @@ for lc = 1:length(mark_labels)
     train_labels = [train_labels; train_labels_lc];
 end
 
-test_im_loc = 1; % which lc person to test on (value 1 - 8) 
+%notes
+% 1 pretty good
+% 2 not great
+% 3 decent - non curve fit good - curve makes little weird
+% 4 pretty good - gets bottom well
+% 5 not great
+% 6 good random forest
+% 7 not great
+% 8 decent - curve fit not optimal
+test_im_loc = 8; % which lc person to test on (value 1 - 8) 
                  % view order of input folder for corresponding lc 
+
 test_im_options = oct(24,:);
 test_im = test_im_options{test_im_loc};
 
@@ -113,23 +123,27 @@ alg_marks = sort_alg_markings(knn_labs,knn_locs,mark_labels{1},scale);
 test_im_cell = oct_ims(24,test_im_loc); % input must be cell array
 im_marked = mark_images(test_im_cell,alg_marks);
 
-alg_line = linefind(alg_marks,size(oct_ims{1}),15);
+alg_line = linefind(alg_marks,size(oct_ims{1}),14);
 im_fitted = mark_images(test_im_cell,alg_line);
 
 figure;
 imshow(marked_ims{24,test_im_loc});
 title('Marked from spreadsheet');
+imwrite(marked_ims{24,test_im_loc},'Sheet_Marked.png');
 
 figure;
 imshow(im_marked{1});
 title('Marked by KNN algorithm');
+imwrite(im_marked{1},'Knn_Marked.png');
 pause(1); % there's a timing issues with the titles 
 
 figure;
 imshow(im_fitted{1});
-title('KNN Linearized');
+title('KNN Curve Fit');
+imwrite(im_fitted{1},'Knn_fit.png');
 
-%% Section 4b:Random Forest - Not bad
+%% Section 4b:Random Forest
+rng(1);
 Mdl = TreeBagger(100,train_data,train_labels);
 
 rf_labels = predict(Mdl,test_feats);
@@ -143,7 +157,7 @@ rf_locs = label_inds(rf_inds,:);
 alg_marks = sort_alg_markings(rf_labs,rf_locs,mark_labels{1},scale);
 
 test_im_cell = oct_ims(24,test_im_loc); % input must be cell array
-alg_line = linefind(alg_marks,size(oct_ims{1}),15);
+alg_line = linefind(alg_marks,size(oct_ims{1}),12);
 im_marked = mark_images(test_im_cell,alg_marks);
 im_fitted = mark_images(test_im_cell,alg_line);
 
@@ -153,14 +167,16 @@ title('Marked from spreadsheet');
 
 figure;
 imshow(im_marked{1});
-title('Random Forest');
+title('Random Forest'); 
+imwrite(im_marked{1},'RF_marked.png');
 pause(1); % there's a timing issues with the titles 
 
 figure;
 imshow(im_fitted{1});
 title('Random Forest Linearized');
+imwrite(im_fitted{1},'RF_Fit.png');
 
-%% SVM Training - Pretty bad
+%% SVM Training - Doesn't work well
 % 
 % t = templateSVM('KernelFunction','gaussian');
 % Mdl = fitcecoc(train_data,train_labels,'Learners',t);
